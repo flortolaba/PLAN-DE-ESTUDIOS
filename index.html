@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Malla Interactiva - Ingeniería en Informática</title>
+  <style>
+    body {
+      background-color: #fdf6f6;
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      color: #af3b61;
+      text-align: center;
+      margin: 0;
+    }
+    .progress-bar {
+      width: 80%;
+      margin: 10px auto;
+      background: #ffe0e6;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: #af3b61;
+      color: white;
+      padding: 5px;
+      font-weight: bold;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .average {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+      color: #af3b61;
+    }
+    .year {
+      border: 2px solid #f3c6c6;
+      background: #fff0f3;
+      border-radius: 15px;
+      padding: 10px;
+      margin: 20px 0;
+
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .year > div:first-child {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+    .semester {
+      flex: 1 1 220px;
+      min-width: 220px;
+      border: 1px solid #f3c6c6;
+      background: #ffe6eb;
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .semester h3 {
+      margin-bottom: 10px;
+    }
+    .subject {
+      background: #fff;
+      border: 2px solid #e5a4a4;
+      border-radius: 10px;
+      padding: 8px;
+      width: 180px;
+      text-align: center;
+      opacity: 0.4;
+      transition: transform 0.2s ease;
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .subject:hover {
+      transform: scale(1.05);
+    }
+    .subject[data-enabled="true"] {
+      opacity: 1;
+      cursor: pointer;
+    }
+    .subject[data-status="regular"] {
+      border-color: #af3b61;
+      background-color: #fce0ec;
+    }
+    .subject[data-status="aprobado"] {
+      background-color: #f3c6c6;
+      color: #333;
+      text-decoration: line-through;
+      opacity: 1;
+    }
+    .note-input {
+      width: 50px;
+      text-align: center;
+      border: 1px solid #af3b61;
+      border-radius: 4px;
+      margin-top: 5px;
+    }
+    select {
+      margin-top: 5px;
+      border: 1px solid #af3b61;
+      border-radius: 4px;
+    }
+    .nota-mostrar {
+      font-size: 0.9em;
+      color: #af3b61;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+    .status-msg {
+      margin-top: 6px;
+      font-size: 0.85em;
+      font-weight: bold;
+      color: green;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .status-msg.red {
+      color: #b33;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Interactiva - Ingeniería en Informática</h1>
+  <div class="progress-bar"><div id="progress-fill" class="progress-fill">0% completado</div></div>
+  <div id="average" class="average">Promedio: -</div>
+  <div id="malla"></div>
+  <script>
+    const plan = {
+    "1° Año": {
+      "Anual": ["FILOSOFÍA"],
+      "1° Semestre": [
+        "ÁLGEBRA LINEAL I",
+        "ANÁLISIS MATEMÁTICO I",
+        "QUIMICA PARA INGENIEROS",
+        "PRUEBA DE SUFICIENCIA EN COMUNICACION ORAL Y ESCRITA",
+        "FUNDAMENTOS DE INFORMÁTICA"
+      ],
+      "2° Semestre": [
+        "INTRODUCCIÓN A LA INFORMÁTICA",
+        "PRUEBA DE SUFIENCIANCIA EN IDIOMA INGLES",
+        "ALGEBRA LINEAL II",
+        "ANALISIS MATEMATICO II",
+        "FÍSICA I"
+      ]
+    },
+    "2° Año": {
+      "Anual": [
+        "TEOLOGÍA", 
+        "ESTRUCTURA DE DATOS Y ALGORITMOS", 
+        "ARQUITECTURA DE COMPUTADORES"
+    ],
+      "1° Semestre": [
+        "FISICA II",
+        "ANÁLISIS MATEMÁTICO III",
+        "ECONOMIA DE LA EMPRESA",
+        "PROBABILIDAD Y ESTADISTICA I",
+        "LENGUAJES I"
+      ],
+      "2° Semestre": [
+        "CALCULO AVANZADO",
+        "LENGUAJES II",
+        "SISTEMAS I",
+        "INTRODUCCION A LOS SISTEMAS OPERATIVOS",
+        "FISICA APLICADA",
+        "ECONOMIA Y FINANZAS",
+        "PROBABILIDAD Y ESTADISTICA II"
+      ]
+    },
+    "3° Año": {
+      "Anual": [
+        "SISTEMAS OPERATIVOS", 
+        "SISTEMAS II", 
+        "REDES I"
+    ],
+      "1° Semestre": [
+        "ANÁLISIS NUMERICO",
+        "DOCTRINA SOCIAL DE LA IGLESIA",
+        "LENGUAJES III",
+        "BASES DE DATOS I",
+        "PROYECTOS INFORMATICOS I",
+        "PRACTICA PROFESIONAL SUPERVISADA TECNICO"
+      ],
+      "2° Semestre": [
+        "ETICA PROFESIONAL",
+        "LENGUAJES IV",
+        "BASES DE DATOS II",
+        "PROYECTOS INFORMATICOS II",
+        "HIGIENE Y SEGURIDAD"
+      ]
+    },
+    "4° Año": {
+      "Anual": [
+        "INGENIERIA DE SOFTWARE", 
+        "SISTEMAS III", 
+        "REDES II"
+    ],
+      "1° Semestre": [
+        "FÍSICA APLICADA",
+        "ECONOMÍA Y FINANZAS",
+        "PROBABILIDAD Y ESTADÍSTICA II",
+        "INVESTIGACIÓN OPERATIVA I"
+      ],
+      "2° Semestre": [
+        "BASES DE DATOS III",
+        "INVESTIGACION OPERATIVA I",
+        "DIRECCION DE PROYECTOS",
+        "COMPILADORES",
+        "ANALISIS DE DATOS",
+        "INVESTIGACION OPERATIVA II"
+      ]
+    },
+    "5° Año": {
+      "Anual": [
+        "MODELOS Y SIMULACION",
+        "SISTEMAS INTELIGENTES",
+      ],
+      "1° Semestre": [
+        "AUDITORIA DE SISTEMAS",
+        "TECNICAS AVANZADAS DE ANALISIS DE DATOS",
+        "RECURSOS HUMANOS",
+        "INGENIERIA LEGAL",
+        "PRACTICA PROFESIONAL SUPERVISADA INGENIERO"
+      ],
+      "2° Semestre": [
+        "PROYECTO DE GRADO",
+        "SEGURIDAD INFORMÁTICA",
+        "ESTRATEGIA E INFORMÁTICA",
+        "REDES III",
+        "LEGISLACIÓN INFORMÁTICA"
+      ]
+    }
+  };
+  const correlatividades = {
+    "FILOSOFIA": {},
+    "ALGEBRA LINEAL I": {},
+    "QUIMICA PARA INGENIEROS": {},
+    "FUNDAMENTOS DE INFORMATICA": {},
+    "PRUEBA DE SUFICIENCIA EN COMUNICACION ORAL Y ESCRITA": {},
+    "PRUEBA DE SUFICIENCIA DE IDIOMA INGLES": {},
+    "ALGEBRA LINEAL II": {
+        aprobado: ["ALGEBRA LINEAL I"],
+        regular: ["ALGEBRA LINEAL I"] },
+    "ANALISIS MATEMATICO II": {
+        aprobado: ["ANALISIS MATEMATICO I"],
+        regular: ["ANALISIS MATEMÁTICO I"] },
+    "INTRODUCCION A LA INFORMATICA": {
+        aprobado: ["FUNDAMENTOS DE INFORMATICA"],
+        regular: ["FUNDAMENTOS DE INFORMATICA"] },
+    "FISICA I": {},
+    "TEOLOGIA": {aprobado: ["FILOSOFIA"]},
+    "ESTRUCTURA DE DATOS Y ALGORITMOS": {
+      aprobado: ["FUNDAMENTOS DE INFORMATICA", "INTRODUCCION A LA INFORMATICA"],
+      regular: ["INTRODUCCION A LA INFORMATICA"]
+    },
+    "ARQUITECTURA DE COMPUTADOR": {
+      aprobado: ["FUNDAMENTOS DE INFORMATICA", "INTRODUCCION A LA INFORMATICA"],
+      regular: ["INTRODUCCION A LA INFORMATICA"]
+    },
+    "ANALISIS MATEMATICO III": {
+        aprobado: ["ANALISIS MATEMATICO I", "ANALISIS MATEMATICO II"],
+        regular: ["ANALISIS MATEMATICO II"]
+    },
+    "LENGUAJES I": {
+        aprobado: ["FUNDAMENTOS DE INFORMATICA", "INTRODUCCION A LA INFORMATICA"],
+        regular: ["INTRODUCCION A LA INFORMATICA"]
+    },
+    "FÍSICA II": {
+        aprobado: ["FISICA I"],
+        regular: ["FÍSICA I"] },
+    "ECONOMIA DE LA EMPRESA": {
+        aprobado: ["ALGEBRA LINEAL II"],
+        regular: ["ALGEBRA LINEAL II"]},
+    "PROBABILIDAD Y ESTADISTICA I": {
+        aprobado: ["ALGEBRA LINEAL II"],
+        regular: ["ALGEBRA LINEAL II"]
+    },
+    "CALCULO AVANZADO": {
+        aprobado: ["ANALISIS MATEMATICO II", "ANALISIS MATEMATICO III"],
+        regular: ["ANALISIS MATEMATICO III"]
+    },
+    "LENGUAJES II": {
+      aprobado: ["INTRODUCCIÓN A LA INFORMÁTICA", "LENGUAJES I"],
+      regular: ["LENGUAJES I"]
+    },
+    "SISTEMAS I": {
+      aprobado: ["INTRODUCCIÓN A LA INFORMÁTICA", "LENGUAJES I"],
+      regular: ["LENGUAJES I"]
+    },
+    "INTRODUCCION A LOS SISTEMAS OPERATIVOS": {
+        aprobado: ["ANALISIS MATEMATICO II", "INTRODUCCION A LA INFORMATICA"],
+        regular: ["INTRODUCCION A LA INFORMATICA", "ANALISIS MATEMATICO II"]
+    },
+    "FISICA APLICADA": {
+        aprobado: ["FISICA I", "FISICA II"],
+        regular: ["FISICA II"]
+    },
+    "ECONOMIA Y FINANZAS": { 
+        aprobado: ["ECONOMIA DE LA EMPRESA"],
+        regular: ["ECONOMIA DE LA EMPRESA"]
+    },
+    "PROBABILIDAD Y ESTADISTICA II": { 
+        aprobado: ["PROBABILIDAD Y ESTADISTICA I"],
+        regular: ["PROBABILIDAD Y ESTADISTICA I"]
+    },
+    "SISTEMAS OPERATIVOS": {
+        aprobado: ["INTRODUCCION A LA INFORMATICA", "ESTRUCTURA DE DATOS Y ALGORITMOS", "ARQUITECTURA DE COMPUTADORES", "INTRODUCCION A LOS SISTEMAS OPERATIVOS"],
+        regular: ["INTRODUCCION A LOS SISTEMAS OPERATIVOS", "ESTRUCTURA DE DATOS Y ALGORITMOS", "ARQUITECTURA DE COMPUTADORES"]
+    },
+    "SISTEMAS II": {
+        aprobado: ["LENGUAJES I", "SISTEMAS I", "LENGUAJES II"],
+        regular: ["LENGUAJES II", "SISTEMAS I"]
+    },
+    "REDES I": {
+        aprobado: ["FISICA II", "INTRODUCCION A LA INFORMATICA", "ARQUITECTURA DE COMPUTADORES"],
+        regular: ["ARQUITECTURA DE COMPUTADOR"]
+    },
+    "DOCTRINA SOCIAL DE LA IGLESIA": {aprobado: ["TEOLOGIA"]},
+    "ANALISIS NUMERICO": {
+        aprobado: ["ALGEBRA LINEAL II", "ANALISIS MATEMATICO II"],
+        regular: ["ALGEBRA LINEAL II", "ANALISIS MATEMATICO II"]
+    },
+    "LENGUAJES III": {
+        aprobado: ["LENGUAJES I", "LENGUAJES II"],
+        regular: ["LENGUAJES II"]
+    },
+    "BASES DE DATOS I": {
+        aprobado: ["INTRODUCCION A LA INFORMATICA", "ESTRUCTURA DE DATOS Y ALGORITMOS"],
+        regular: ["ESTRUCTURA DE DATOS Y ALGORITMOS"]
+    },
+    "PROYECTOS INFORMÁTICOS I": {
+        aprobado: ["LENGUAJES I", "SISTEMAS I"],
+        regular: ["SISTEMAS I"],
+    },
+    "PRACTICA PROFESIONAL SUPERVISADA TECNICO": {},
+    "ETICA PROFESIONAL": {
+        aprobado: ["DOCTRINA SOCIAL DE LA IGLESIA"],
+        regular: ["DOCTRINA SOCIAL DE LA IGLESIA"]
+    },
+    "LENGUAJES IV": {
+        aprobado: ["LENGUAJES II", "LENGUAJES III", "BASES DE DATOS I"],
+        regular: ["LENGAUJES III", "BASES DE DATOS I"]
+    },
+    "BASES DE DATOS II": {
+        aprobado: ["ESTRUCTURA DE DATOS Y ALGORITMOS", "BASES DE DATOS I", "ALGEBRA LINELA II"],
+        regular: ["ALGEBRA LINEAL II", "BASES DE DATOS I"]
+    },
+    "PROYECTOS INFORMÁTICOS II": {
+        aprobado: ["SISTEMAS I", "PROYECTOS INFORMATICOS I", "ECONOMIA DE LA EMPRESA"],
+        regular: ["PROYECTOS INFORMATICOS I", "ECONOMIA DE LA EMPRESA"],
+    },
+    "HIGIENE Y SEGURIDAD": {
+        aprobado: ["QUIMICA PARA INGENIEROS"]
+    },
+    "INGENIERIA DE SOFTWARE": {
+        aprobado: ["SISTEMAS I", "SISTEMAS II", "PROYECTOS INFORMATICOS II"],
+        regular: ["PROYECTOS INFORMATICOS II", "SISTEMAS II"]
+    },
+    "SISTEMAS III": {
+        aprobado: ["SISTEMAS I", "ECONOMIA Y FINANZAS", "SISTEMAS II", "PROYECTOS INFORMATICOS II"],
+        regular: ["PROYECTOS INFORMATICOS II", "SISTEMAS II"]
+    },
+    "REDES II": {
+        aprobado: ["ARQUITECTURA DE COMPUTADORES", "REDES I", "CALCULO AVANZADO"],
+        regular: ["CALCULO AVANZADO", "REDES I"]
+    },
+    "BASES DE DATOS III": {
+        aprobado: ["BASES DE DATOS I", "BASES DE DATOS II"],
+        regular: ["BASES DE DATOS II"]
+    },
+    "INVESTIGACION OPERATIVA I": {
+        aprobado: ["PROBABILIDAD Y ESTADISTICA II", "PROYECTOS INFORMATICOS II"],
+        regular: ["ANALISIS NUMERICO", "PROBABILIDAD Y ESTADISTICA II"]
+    },
+    "DIRECCION DE PROYECTOS": {
+        aprobado: ["SISTEMAS I", "ECONOMIA Y FINANZAS", "SISTEMAS II", "PROYECTOS INFORMATICOS II"],
+        regular: ["PROYECTOS INFORMATICOS II", "SISTEMAS II"]
+    },
+    "COMPILADORES": {
+        aprobado: ["LENGUAJES III", "ESTRUCTURA DE DATOS Y ALGORITMOS", "LENGUAJES IV"],
+        regular: ["LENGUAJES IV"]
+    },
+    "ANALISIS DE DATOS": {
+        aprobado: ["BASES DE DATOS II", "BASES DE DATOS III", "PROBABILIDAD Y ESTADISTICA II"],
+        regular: ["BASES DE DATOS III", "PROBABILIDAD Y ESTADISTICA II"]
+    },
+    "INVESTIGACION OPERATIVA II": {
+        aprobado: ["INVESTIGACION OPERATIVA I"],
+        regular: ["INVESTIGACION OPERATIVA I"]
+    },
+    "MODELOS Y SIMULACION": {
+        aprobado: ["INVESTIGACION OPERATIVA I", "INVESTIGACION OPERATIVA II", "ANALISIS NUMERICO"],
+        regular: ["INVESTIGACION OPERATIVA II", "ANALISIS NUMERICO"]
+    },
+    "SISTEMAS INTELIGENTES": {
+        aprobado: ["LENGUAJES IV", "ANALISIS DE DATOS"],
+        regular: ["ANALISIS DE DATOS"]
+    },
+    "AUDITORIA DE SISTEMAS": {
+        aprobado: ["SISTEMAS II", "INGENIERIA DE SOFTWARE"],
+        regular: ["INGENIERIA DE SOFTWARE"]
+    },
+    "TECNICAS AVANZADAS DE ANALISIS DE DATOS": {
+        aprobado: ["LENGUAJES IV", "ANALISIS DE DATOS"],
+        regular: ["ANALISIS DE DATOS"]
+    },
+    "RECURSOS HUMANOS": {
+        aprobado: ["DIRECCION DE PROYECTOS"],
+        regular: ["DIRECCION DE PROYECTOS"]
+    },
+    "INGENIERIA LEGAL": {
+        aprobado: ["ETICA PROFESIONAL", "DIRECCION DE PROYECTOS"],
+        regular: ["DIRECCION DE PROYECTOS"]
+    },
+    "PRACTICA PROFESIONAL SUPERVISADA INGENIERO": {},
+    "PROYECTO DE GRADO": {
+        aprobado: ["PROYECTOS INFORMATICOS II", "INGENIERIA DE SOFTWARE"],
+        regular: ["INGENIERIA DE SOFTWARE", "DIRECCION DE PROYECTOS"]
+    },
+    "SEGURIDAD INFORMATICA": {
+        aprobado: ["HIGIENE Y SEGURIDAD", "SISTEMAS OPERATIVOS", "AUDITORIA DE SISTEMAS"],
+        regular: ["AUDITORIA DE SISTEMAS"]
+    },
+    "ESTRATEGIA E INFORMATICA": {
+        aprobado: ["SISTEMAS II", "INGENIERIA DE SOFTWARE", "ANALISIS DE DATOS"],
+        regular: ["INGENIERIA DE SOFTWARE", "ANALISIS DE DATOS"]
+    },
+    "REDES III": {
+        aprobado: ["REDES I", "REDES II"],
+        regular: ["REDES II"]
+    },
+    "LEGISLACION INFORMATICA": {
+        aprobado: ["INGENIERIA LEGAL"],
+        regular: ["INGENIERIA LEGAL"]
+    }
+  };
+  let materiasEstado = {};
+    if(localStorage.getItem('materiasEstado')){
+      materiasEstado = JSON.parse(localStorage.getItem('materiasEstado'));
+    }
+
+    function guardarEstado(){
+      localStorage.setItem('materiasEstado', JSON.stringify(materiasEstado));
+      actualizarVista();
+    }
+
+    function puedeHabilitar(materia){
+      const requisitos = correlatividades[materia] || {};
+      if(!requisitos.aprobado) return true;
+      return requisitos.aprobado.every(reqMat => {
+        return materiasEstado[reqMat]?.nota >= 4;
+      });
+    }
+
+    function puedeCursar(materia){
+      const requisitos = correlatividades[materia] || {};
+      if(!requisitos.regular) return true;
+      return requisitos.regular.every(reqMat => {
+        return materiasEstado[reqMat]?.nota >= 4;
+      });
+    }
+
+    function crearMalla(){
+      const mallaDiv = document.getElementById("malla");
+      mallaDiv.innerHTML = "";
+
+      Object.entries(plan).forEach(([anio, categorias]) => {
+        const yearDiv = document.createElement("div");
+        yearDiv.className = "year";
+
+        const titleDiv = document.createElement("div");
+        titleDiv.style.width = "100%";
+        titleDiv.style.textAlign = "center";
+        titleDiv.style.marginBottom = "10px";
+        titleDiv.innerHTML = `<h2>${anio}</h2>`;
+        yearDiv.appendChild(titleDiv);
+
+        Object.entries(categorias).forEach(([etiqueta, materias]) => {
+          const semDiv = document.createElement("div");
+          semDiv.className = "semester";
+          semDiv.innerHTML = `<h3>${etiqueta}</h3>`;
+
+          materias.forEach(materia => {
+            const subjDiv = document.createElement("div");
+            subjDiv.className = "subject";
+
+            const estado = materiasEstado[materia]?.estado || "no cursada";
+            const nota = materiasEstado[materia]?.nota ?? null;
+
+            const habilitada = puedeHabilitar(materia);
+            const cursable = puedeCursar(materia);
+            subjDiv.dataset.enabled = habilitada;
+
+            if(estado === "aprobado"){
+              subjDiv.dataset.status = "aprobado";
+            } else if(estado === "regular"){
+              subjDiv.dataset.status = "regular";
+            } else {
+              subjDiv.dataset.status = "no-cursada";
+            }
+
+            subjDiv.innerHTML = `<div>${materia}</div>`;
+
+            if(habilitada){
+              // Mostrar el mensaje de "Podés cursar" o "Podés rendir"
+              const statusMsg = document.createElement("div");
+              statusMsg.className = "status-msg";
+
+              if(cursable){
+                statusMsg.innerHTML = "✔️ Podés cursar";
+              }
+              if(habilitada && !cursable){
+                statusMsg.innerHTML = "✔️ Podés rendir";
+              }
+
+              subjDiv.appendChild(statusMsg);
+
+              // Select estado
+              const selectEstado = document.createElement("select");
+              ["no cursada","regular","aprobado"].forEach(op => {
+                const option = document.createElement("option");
+                option.value = op;
+                option.textContent = op.charAt(0).toUpperCase() + op.slice(1);
+                if(op === estado) option.selected = true;
+                selectEstado.appendChild(option);
+              });
+              subjDiv.appendChild(selectEstado);
+
+              // Input nota
+              const inputNota = document.createElement("input");
+              inputNota.type = "number";
+              inputNota.min = 0;
+              inputNota.max = 10;
+              inputNota.step = 0.1;
+              inputNota.className = "note-input";
+              inputNota.value = nota ?? "";
+              subjDiv.appendChild(inputNota);
+
+              selectEstado.addEventListener("change", () => {
+                materiasEstado[materia] = materiasEstado[materia] || {};
+                materiasEstado[materia].estado = selectEstado.value;
+                if(selectEstado.value === "no cursada") materiasEstado[materia].nota = null;
+                guardarEstado();
+              });
+              inputNota.addEventListener("input", () => {
+                const val = parseFloat(inputNota.value);
+                materiasEstado[materia] = materiasEstado[materia] || {};
+                materiasEstado[materia].nota = isNaN(val) ? null : val;
+                if(val >= 4){
+                  materiasEstado[materia].estado = "aprobado";
+                  selectEstado.value = "aprobado";
+                } else if(val > 0 && val < 4){
+                  materiasEstado[materia].estado = "regular";
+                  selectEstado.value = "regular";
+                } else if(val === 0){
+                  materiasEstado[materia].estado = "no cursada";
+                  selectEstado.value = "no cursada";
+                }
+                guardarEstado();
+              });
+
+            } else {
+              const spanMsg = document.createElement("div");
+              spanMsg.style.fontSize = "0.8em";
+              spanMsg.style.color = "#b88";
+              spanMsg.style.marginTop = "5px";
+              spanMsg.textContent = "Requisitos no cumplidos";
+              subjDiv.appendChild(spanMsg);
+            }
+
+            semDiv.appendChild(subjDiv);
+          });
+
+          yearDiv.appendChild(semDiv);
+        });
+
+        mallaDiv.appendChild(yearDiv);
+      });
+    }
+
+    function actualizarVista(){
+      const materias = Object.values(materiasEstado);
+      const totalMaterias = Object.values(plan).flatMap(a => 
+        Object.values(a).flat()
+      ).length;
+
+      const aprobadas = materias.filter(m => m.estado === "aprobado");
+      const porcentaje = Math.round((aprobadas.length / totalMaterias) * 100);
+      document.getElementById("progress-fill").style.width = porcentaje + "%";
+      document.getElementById("progress-fill").textContent = porcentaje + "% completado";
+
+      const notas = aprobadas.map(m => m.nota).filter(n => n !== null && !isNaN(n));
+      let promedio = "-";
+      if(notas.length > 0){
+        promedio = (notas.reduce((a,b)=>a+b,0) / notas.length).toFixed(2);
+      }
+      document.getElementById("average").textContent = "Promedio: " + promedio;
+    }
+
+    crearMalla();
+    actualizarVista();
+  </script>
+</body>
+</html>
